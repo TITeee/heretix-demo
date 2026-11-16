@@ -56,7 +56,7 @@ services:
       retries: 120
 
   management:
-    image: ghcr.io/titeee/heretix-management:sha-874c69c
+    image: ghcr.io/titeee/heretix-management:sha-ef9e2cd
     restart: unless-stopped
     depends_on:
       management-db: { condition: service_healthy }
