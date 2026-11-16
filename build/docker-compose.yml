@@ -1,0 +1,41 @@
+# The heretix-management that the demo data is made in: scanned against a full
+# heretix-api on this machine (port 5000), then dumped into ../seed. Its own
+# project name, database volume and port, so it never touches another install.
+name: hdemo
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: heretix_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: demobuild
+    volumes:
+      - build_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d heretix_management"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  app:
+    build:
+      context: ${MANAGEMENT_SRC:-../../heretix-management}
+      dockerfile: Dockerfile
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://postgres:demobuild@db:5432/heretix_management
+      AUTH_SECRET: ${BUILD_AUTH_SECRET}
+      AUTH_URL: http://localhost:3200
+      HERETIX_API_URL: http://host.docker.internal:5000
+      HERETIX_API_KEY: ${BUILD_HERETIX_API_KEY}
+      # Scans and refreshes are run by hand while the data is made.
+      CRON_SCAN: "0 0 1 1 *"
+      CRON_REFRESH: "0 0 1 1 *"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:3200:3000"
+volumes:
+  build_db:

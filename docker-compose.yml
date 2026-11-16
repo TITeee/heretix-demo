@@ -1,0 +1,79 @@
+# heretix with sample data: heretix-management and heretix-api, each on its own
+# PostgreSQL that loads the sample data on its first start. Open
+# http://localhost:3000 (or the DEMO_PORT you set).
+#
+# Everything listens on 127.0.0.1 only: the sign-in and the secrets below are
+# for this demo, not for a real install.
+name: heretix-demo
+
+x-db: &db
+  restart: unless-stopped
+  # The seed loads during the first start; the server answers on TCP only after
+  # that, so the apps wait on a TCP check, not the socket one.
+  environment: &db-env
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: heretix-demo
+
+services:
+  api-db:
+    <<: *db
+    environment:
+      <<: *db-env
+      POSTGRES_DB: heretix
+    # postgres:15-alpine with the seed and the date shift in docker-entrypoint-initdb.d
+    image: ghcr.io/titeee/heretix-demo-api-db:2026.11.15
+    volumes:
+      - api_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d heretix"]
+      interval: 5s
+      timeout: 5s
+      retries: 120
+
+  api:
+    image: ghcr.io/titeee/heretix-api:0.7.0
+    restart: unless-stopped
+    depends_on:
+      api-db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://postgres:heretix-demo@api-db:5432/heretix
+      PORT: "5000"
+      API_KEY: heretix-demo-api-key-not-a-secret
+      ADMIN_API_KEY: heretix-demo-admin-key-not-a-secret
+
+  management-db:
+    <<: *db
+    environment:
+      <<: *db-env
+      POSTGRES_DB: heretix_management
+    image: ghcr.io/titeee/heretix-demo-management-db:2026.11.15
+    volumes:
+      - management_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d heretix_management"]
+      interval: 5s
+      timeout: 5s
+      retries: 120
+
+  management:
+    image: ghcr.io/titeee/heretix-management:0.9.1
+    restart: unless-stopped
+    depends_on:
+      management-db: { condition: service_healthy }
+      api: { condition: service_started }
+    environment:
+      DATABASE_URL: postgresql://postgres:heretix-demo@management-db:5432/heretix_management
+      AUTH_SECRET: heretix-demo-auth-secret-not-a-secret
+      AUTH_URL: http://localhost:${DEMO_PORT:-3000}
+      HERETIX_API_URL: http://api:5000
+      HERETIX_API_KEY: heretix-demo-api-key-not-a-secret
+      DEMO_MODE: "true"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    ports:
+      # DEMO_PORT=3300 docker compose up, when something else has port 3000.
+      - "127.0.0.1:${DEMO_PORT:-3000}:3000"
+
+volumes:
+  api_db:
+  management_db:

@@ -1,0 +1,10 @@
+.env
+build/.env
+build/.adminpw
+build/cookies.txt
+# Real SBOMs and dumps in progress never go in; the published seed does.
+build/work/
+
+# The seeds ship inside the database images (build/publish-seed.sh), not in git.
+seed/*.sql.gz
+build/.token

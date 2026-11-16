@@ -1,0 +1,19 @@
+# For working on the demo: the apps built from checkouts next to this one, and
+# the databases from ./seed rather than the published images.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+services:
+  api-db:
+    image: postgres:15-alpine
+    volumes:
+      - ./seed/heretix-api.sql.gz:/docker-entrypoint-initdb.d/10-seed.sql.gz:ro
+      - ./seed/shift-dates-api.sql:/docker-entrypoint-initdb.d/20-shift-dates.sql:ro
+  api:
+    build: ${HERETIX_API_SRC:-../heretix-api}
+  management-db:
+    image: postgres:15-alpine
+    volumes:
+      - ./seed/heretix-management.sql.gz:/docker-entrypoint-initdb.d/10-seed.sql.gz:ro
+      - ./seed/shift-dates-management.sql:/docker-entrypoint-initdb.d/20-shift-dates.sql:ro
+  management:
+    build: ${HERETIX_MANAGEMENT_SRC:-../heretix-management}
