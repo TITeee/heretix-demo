@@ -6,7 +6,7 @@ heretix is a self-hosted suite that tracks the vulnerabilities of servers, conta
 
 ## Run it
 
-You need Docker with Docker Compose v2, and about 3 GB of free memory.
+You need Docker with Docker Compose v2, about 2 GB of free memory and about 10 GB of free disk (the first start downloads the images).
 
 ```sh
 git clone https://github.com/TITeee/heretix-demo.git
@@ -37,7 +37,7 @@ The Linux hosts were real virtual machines, collected with [heretix-cli](https:/
 ## Where to look
 
 1. **Dashboard**: what is overdue against its SLA, and the known-exploited (CISA KEV) findings first.
-2. **An asset's Remediation tab** (try `rhel-app-01` or `win-dc-01`): tens of thousands of findings come down to a handful of updates, and the ones with no fix are grouped by why.
+2. **An asset's Remediation tab**: alerts grouped by the update that fixes them, and the ones with no fix grouped by why. On `win-dc-01`, one update closes 553 findings. On `rhel-app-01`, 77,000 open findings sort into 30 updates (the kernel update alone covers about 1,500, five of them known exploited) and five groups the vendor has not fixed (deferred, will not fix, and so on).
 3. **An asset's Services tab** (try `ubuntu-web-01`): which services run the vulnerable code, which need a restart after the last upgrade, and what is installed but never loaded.
 4. **Alerts**: open Log4Shell (`CVE-2021-44228`) on `rhel-app-01`, in progress with a comment, and the Samba findings on `debian-proxy-01`, set aside as not affected, with their reason in the VEX export.
 5. **`fw-hq-01`'s history**: the upgrade closed the findings it fixed on its own.
