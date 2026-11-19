@@ -31,7 +31,7 @@ services:
       retries: 120
 
   api:
-    image: ghcr.io/titeee/heretix-api:0.7.0
+    image: ghcr.io/titeee/heretix-api:0.8.0
     restart: unless-stopped
     depends_on:
       api-db: { condition: service_healthy }
@@ -56,7 +56,7 @@ services:
       retries: 120
 
   management:
-    image: ghcr.io/titeee/heretix-management:sha-ef9e2cd
+    image: ghcr.io/titeee/heretix-management:0.10.0
     restart: unless-stopped
     depends_on:
       management-db: { condition: service_healthy }
